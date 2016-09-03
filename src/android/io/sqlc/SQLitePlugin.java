@@ -305,7 +305,7 @@ public class SQLitePlugin extends CordovaPlugin {
         File dbfile = this.cordova.getActivity().getDatabasePath(dbname);
 
         try {
-            cbc.success(dbfile.exists());
+            cbc.success(dbfile.exists() ? 1 : 0);
         } catch (Exception e) {
             Log.e(SQLitePlugin.class.getSimpleName(), "couldn't check if database exists", e);
             cbc.error("couldn't check if database exists");
