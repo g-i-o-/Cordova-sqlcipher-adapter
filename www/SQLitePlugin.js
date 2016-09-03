@@ -600,7 +600,25 @@
       args.dblocation = dblocation;
       delete SQLitePlugin.prototype.openDBs[args.path];
       return cordova.exec(success, error, "SQLitePlugin", "delete", [args]);
+  },
+  checkDatabaseExists: function(first, success, error) {
+    var args, dblocation;
+    args = {};
+    if (first.constructor === String) {
+      throw newSQLError('Sorry first checkDatabaseExists argument must be an object');
+    } else {
+      if (!(first && first['name'])) {
+        throw new Error("Please specify db name");
+      }
+      args.path = first.name;
     }
+    if (!first.iosDatabaseLocation && !first.location && first.location !== 0) {
+      throw newSQLError('Database location or iosDatabaseLocation value is now mandatory in checkDatabaseExists call');
+    }
+    dblocation = !!first.location && first.location === 'default' ? iosLocationMap['default'] : !!first.iosDatabaseLocation ? iosLocationMap[first.iosDatabaseLocation] : dblocations[first.location];
+    args.dblocation = dblocation;
+    return cordova.exec(success, error, "SQLitePlugin", "checkExists", [args]);
+  }
   };
 
   root.sqlitePlugin = {
@@ -625,6 +643,7 @@
         }
       ]);
     },
+    checkDatabaseExists: SQLiteFactory.checkDatabaseExists,
     openDatabase: SQLiteFactory.openDatabase,
     deleteDatabase: SQLiteFactory.deleteDatabase
   };

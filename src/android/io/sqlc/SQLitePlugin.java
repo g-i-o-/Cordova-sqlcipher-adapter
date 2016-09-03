@@ -118,6 +118,14 @@ public class SQLitePlugin extends CordovaPlugin {
                 this.closeDatabase(dbname, cbc);
                 break;
 
+            case checkExists:
+                o = args.getJSONObject(0);
+                dbname = o.getString("path");
+
+                checkDatabaseExists(dbname, cbc);
+
+                break;
+
             case delete:
                 o = args.getJSONObject(0);
                 dbname = o.getString("path");
@@ -293,6 +301,17 @@ public class SQLitePlugin extends CordovaPlugin {
         }
     }
 
+    private void checkDatabaseExists(String dbname, CallbackContext cbc) {
+        File dbfile = this.cordova.getActivity().getDatabasePath(dbname);
+
+        try {
+            cbc.success(dbfile.exists());
+        } catch (Exception e) {
+            Log.e(SQLitePlugin.class.getSimpleName(), "couldn't check if database exists", e);
+            cbc.error("couldn't check if database exists");
+        }
+    }
+
     private void deleteDatabase(String dbname, CallbackContext cbc) {
         DBRunner r = dbrmap.get(dbname);
         if (r != null) {
@@ -462,6 +481,7 @@ public class SQLitePlugin extends CordovaPlugin {
         delete,
         executeSqlBatch,
         backgroundExecuteSqlBatch,
+        checkExists,
     }
 }
 
