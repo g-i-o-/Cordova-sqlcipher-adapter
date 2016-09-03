@@ -159,6 +159,64 @@ var mytests = function() {
           }
         }
 
+        var checkDbExists = function(dbname, okCb){
+            var errorCb = function(){
+                ok(false, 'Could not check if db exists: ' + JSON.stringify(err));
+                start();
+            }
+            if (!isOldAndroidImpl) {
+              window.sqlitePlugin.checkDatabaseExists({name: dbname, location: 0}, okCb, errorCb);
+            } else {
+              window.sqlitePlugin.checkDatabaseExists({name: 'i2-'+dbname, location: 0}, okCb, errorCb);
+            }
+        }
+
+        test_it(suiteName + ' test sqlitePlugin.deleteDatabase()', function () {
+          stop();
+          var dbname = "existential-db";
+          var db = openDatabase(dbname, "1.0", "Demo", DEFAULT_SIZE);
+
+          function addStuff() {
+            db.transaction(function(tx) {
+              tx.executeSql('DROP TABLE IF EXISTS test');
+              tx.executeSql('CREATE TABLE IF NOT EXISTS test (name)', [], function () {
+                tx.executeSql('INSERT INTO test VALUES (?)', ['foo']);
+              });
+            }, function (err) {
+              ok(false, 'add stuff failed with ERROR: ' + JSON.stringify(err));
+              console.log('add stuff failed with ERROR: ' + JSON.stringify(err));
+              start();
+            }, function () {
+                checkDbExists(dbname, function(exists){
+                    if(exists){
+                        deleteAndConfirmDeleted();
+                    } else {
+                        ok(false, 'expected db to exist.');
+                    }
+                });
+            });
+          }
+
+          function deleteAndConfirmDeleted() {
+            deleteDatabase("DB-Deletable", function () {
+                checkDbExists(dbname, function(exists){
+                    if(exists){
+                        ok(false, 'expected db to not exist.');
+                    } else {
+                        ok(true, 'db does not exists, as expected.');
+                        start();
+                    }
+                });
+            }, function (err) {
+              console.log("ERROR: " + JSON.stringify(err));
+              ok(false, 'error: ' + err);
+              start();
+            });
+          }
+
+          addStuff();
+        });
+
         test_it(suiteName + ' test sqlitePlugin.deleteDatabase()', function () {
           stop();
           var db = openDatabase("DB-Deletable", "1.0", "Demo", DEFAULT_SIZE);
