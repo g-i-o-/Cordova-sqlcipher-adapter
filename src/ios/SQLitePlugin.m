@@ -288,6 +288,41 @@ sqlite_regexp(sqlite3_context * context, int argc, sqlite3_value ** values) {
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
+-(void) checkExists: (CDVInvokedUrlCommand*)command
+{
+    [self.commandDelegate runInBackground:^{
+        [self checkExistsNow: command];
+    }];
+}
+
+-(void)checkExistsNow: (CDVInvokedUrlCommand*)command
+{
+    CDVPluginResult* pluginResult = nil;
+    NSMutableDictionary *options = [command.arguments objectAtIndex:0];
+
+    NSString *dbFileName = [options objectForKey:@"path"];
+
+    NSString *dblocation = [options objectForKey:@"dblocation"];
+    if (dblocation == NULL) dblocation = @"docs";
+
+    if (dbFileName==NULL) {
+        // Should not happen:
+        NSLog(@"No db name specified for checkExists");
+        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"You must specify database path"];
+    } else {
+        NSString *dbPath = [self getDBPath:dbFileName at:dblocation];
+
+        if ([[NSFileManager defaultManager]fileExistsAtPath:dbPath]) {
+            NSLog(@"checkExists full db path: %@", dbPath);
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:YES];
+        } else {
+            NSLog(@"checkExists: db was not found: %@", dbPath);
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:NO];
+        }
+    }
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+
 
 -(void) backgroundExecuteSqlBatch: (CDVInvokedUrlCommand*)command
 {

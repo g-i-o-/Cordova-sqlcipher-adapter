@@ -171,6 +171,21 @@ module.exports = {
 			fail(ex);
 		}
 		//handle(res, win, fail);
+	},
+    checkExists: function(win, fail, args) {
+	    var options = args[0];
+		try {
+		    //res = SQLitePluginRT.SQLitePlugin.deleteAsync(JSON.stringify(options));
+			var dbname = options.path;
+
+			WinJS.Application.local.exists(dbname).then(function(isExisting) {
+                win(isExisting);
+			});
+
+		} catch(ex) {
+			fail(ex);
+		}
+		//handle(res, win, fail);
 	}
 };
 require("cordova/exec/proxy").add("SQLitePlugin", module.exports);
